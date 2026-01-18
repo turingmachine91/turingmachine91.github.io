@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>来自未来的 99 封信</title>
+    <style>
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow-x: hidden; background-color: #000;
+            font-family: 'Optima', 'PingFang SC', serif;
+        }
+
+        #starfield {
+            position: fixed; top: 0; left: 0; z-index: 0;
+            width: 100vw; height: 100vh;
+        }
+
+        .content-layer {
+            position: relative; z-index: 10;
+            display: flex; flex-direction: column; align-items: center;
+            opacity: 0; animation: fadeInContent 3s ease 2s forwards;
+            padding-bottom: 50px;
+        }
+
+        @keyframes fadeInContent {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        header {
+            text-align: center; padding: 60px 20px;
+            color: #d4af37; letter-spacing: 6px;
+        }
+
+        header h1 { font-weight: 200; font-size: 1.5rem; margin-bottom: 10px; }
+        header p { font-size: 0.8rem; opacity: 0.7; letter-spacing: 2px; }
+
+        .mail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+            gap: 15px; width: 90%; max-width: 800px;
+        }
+
+        .envelope {
+            aspect-ratio: 1; border: 1px solid rgba(212, 175, 55, 0.3);
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(2px); border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            text-decoration: none; color: #d4af37; font-size: 0.75rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .envelope:active { transform: scale(0.9); background: rgba(212, 175, 55, 0.2); }
+
+        .special {
+            border: 1px solid #dad621; color: #e7e423;
+            box-shadow: 0 0 15px rgba(255, 71, 87, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 5px rgba(255, 71, 87, 0.2); }
+            50% { box-shadow: 0 0 20px rgba(255, 71, 87, 0.5); }
+            100% { box-shadow: 0 0 5px rgba(255, 71, 87, 0.2); }
+        }
+
+        .locked { opacity: 0.4; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+<canvas id="starfield"></canvas>
+
+<div class="content-layer">
+    <header>
+        <h1>PROJECT 99</h1>
+        <p>— 跨越时空的 99 封回信 —</p>
+    </header>
+
+    <div class="mail-grid" id="grid">
+        </div>
+</div>
+
+<script>
+    // --- 星空穿越逻辑 ---
+    const canvas = document.getElementById('starfield');
+    const ctx = canvas.getContext('2d');
+
+    let w, h, stars = [];
+    const count = 2400;
+    const speed = 15; // 初始穿越速度
+
+    function init() {
+        w = window.innerWidth;
+        h = window.innerHeight;
+        canvas.width = w;
+        canvas.height = h;
+        stars = [];
+        for (let i = 0; i < count; i++) {
+            stars.push({
+                x: Math.random() * w - w / 2,
+                y: Math.random() * h - h / 2,
+                z: Math.random() * w,
+                o: Math.random()
+            });
+        }
+    }
+
+    function draw() {
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, w, h);
+        
+        ctx.save();
+        ctx.translate(w / 2, h / 2);
+        
+        for (let i = 0; i < count; i++) {
+            let s = stars[i];
+            s.z -= speed;
+
+            if (s.z <= 0) s.z = w;
+
+            let x = s.x / (s.z / w);
+            let y = s.y / (s.z / w);
+            let size = (1 - s.z / w) * 3;
+            
+            ctx.fillStyle = `rgba(255, 255, 255, ${1 - s.z / w})`;
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 绘制拉伸线效果
+            ctx.strokeStyle = `rgba(212, 175, 55, ${0.2 * (1 - s.z / w)})`;
+            ctx.lineWidth = size;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x * 1.05, y * 1.05);
+            ctx.stroke();
+        }
+        ctx.restore();
+        requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', init);
+    init();
+    draw();
+
+    // --- 信件生成逻辑 ---
+    const grid = document.getElementById('grid');
+    for (let i = 1; i <= 99; i++) {
+        const a = document.createElement('a');
+        if (i === 1) {
+            a.className = 'envelope special';
+            a.href = "story.html"; 
+        } else {
+            a.className = 'envelope locked';
+            a.onclick = (e) => {
+                e.preventDefault();
+                alert(`第 ${i} 封信被寄存在未来的 202${Math.floor(i/10)+6} 年，现在还无法开启哦。`);
+            };
+        }
+        a.innerHTML = String(i).padStart(2, '0');
+        grid.appendChild(a);
+    }
+</script>
+
+</body>
+</html>

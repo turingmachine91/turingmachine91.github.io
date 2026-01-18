@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>99 Letters Already Sent</title>
+    <title>Project 99: Chrono Gallery</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -41,14 +41,6 @@
         .ui-visible {
             opacity: 1;
             visibility: visible;
-        }
-
-        /* 添加在这里：转场动画效果 */
-        .fade-out {
-            opacity: 0 !important;
-            transform: scale(1.5); /* 模拟向信件冲过去的感觉 */
-            transition: all 1s ease-out !important;
-            pointer-events: none; /* 防止跳转时重复点击 */
         }
 
         /* 标题区域 */
@@ -158,8 +150,8 @@
 
 <div class="ui-layer" id="uiLayer">
     <header>
-        <h1>99 Letters Already Sent</h1>
-        <div class="subtitle">Decelerating... Archives Found From Future</div>
+        <h1>CHRONO GALLERY</h1>
+        <div class="subtitle">Decelerating... Archives Found</div>
     </header>
 
     <div class="gallery-container" id="gallery">
@@ -251,7 +243,7 @@
         setTimeout(() => {
             uiLayer.classList.add('ui-visible');
         }, 1500);
-    }, 1000);
+    }, 8000);
 
     // --- 修改后的画廊内容生成逻辑 ---
     for (let i = 1; i <= 99; i++) {
@@ -262,39 +254,29 @@
         card.innerHTML = `
             <div class="card-number">${String(i).padStart(2, '0')}</div>
             <div style="flex-grow:1"></div>
-            <div class="card-year">YEAR ${2025 +i}</div>
+            <div class="card-year">YEAR ${2026 + i}</div>
             <div class="card-status">${isUnlocked ? 'DECRYPTED' : 'LOCKED'}</div>
             <div style="height: 20px"></div>
         `;
 
         card.onclick = () => {
+            // 无论是否锁定，点击时都先让卡片居中，增强交互感
             card.scrollIntoView({ behavior: 'smooth', inline: 'center' });
 
             if (isUnlocked) {
-                // --- 添加在这里：点击后的转场逻辑 ---
-                
-                // 1. 让背景星空再次加速，制造穿越感
-                speed = 20; 
-                
-                // 2. 给 UI 层加上消失类名（触发缩放和淡出）
-                uiLayer.classList.remove('ui-visible');
-                uiLayer.classList.add('fade-out');
-
-                // 3. 1秒后（等动画播完）执行跳转
+                // --- 核心跳转代码 ---
+                // 延迟 500ms 跳转，给用户一个看清卡片居中动画的时间
                 setTimeout(() => {
-                    window.location.href = "story.html";
-                }, 2000);
-                
+                    window.location.href = "story.html"; 
+                }, 500);
             } else {
-                // 锁定状态的逻辑保持不变
-                const futureYear = 2025 + i;
+                // 锁定状态下的反馈
+                const futureYear = 2026 + i;
                 alert(`[访问受限]\n该信件已被量子加密。解锁时间：${futureYear}年。`);
             }
         };
         gallery.appendChild(card);
-
     }
-
 
 
     window.addEventListener('resize', initStars);

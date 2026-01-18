@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>来自未来的 99 封信 | Galaxy Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gold: #ffd700;
+            --space-blue: #0f172a;
+            --nebula-purple: #4c1d95;
+            --glass-bg: rgba(20, 20, 35, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow-x: hidden;
+            background-color: #000;
+            /* 深邃的宇宙背景底色 */
+            background: radial-gradient(circle at center, #1a1a2e 0%, #000000 100%);
+            font-family: 'Montserrat', sans-serif;
+            color: #fff;
+        }
+
+        /* 核心画布 */
+        #galaxy-canvas {
+            position: fixed; top: 0; left: 0; z-index: 0;
+            width: 100vw; height: 100vh;
+        }
+
+        /* 噪点纹理层 - 增加电影质感 */
+        .noise-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+            opacity: 0.05;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* 暗角遮罩 */
+        .vignette {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 2;
+            background: radial-gradient(circle at center, transparent 40%, #000 120%);
+            pointer-events: none;
+        }
+
+        .content-layer {
+            position: relative; z-index: 10;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh;
+            padding-bottom: 50px;
+            opacity: 0;
+            animation: fadeIn 2.5s ease-out 1s forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        header {
+            text-align: center; margin-top: 8vh; margin-bottom: 40px;
+            position: relative;
+        }
+
+        header h1 {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 2.5rem; margin: 0;
+            background: linear-gradient(180deg, #fff, #a5b4fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(165, 180, 252, 0.4);
+            letter-spacing: 4px;
+        }
+
+        header p {
+            font-size: 0.85rem; letter-spacing: 6px;
+            color: rgba(255,255,255,0.6);
+            margin-top: 15px; text-transform: uppercase;
+        }
+
+        /* 磨砂玻璃容器 */
+        .grid-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            width: 85%; max-width: 800px;
+        }
+
+        .mail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 15px;
+        }
+
+        /* 极简高级感按钮 */
+        .node {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            text-decoration: none;
+            font-size: 0.8rem; font-weight: 600;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* 激活状态 - 像星星一样亮起 */
+        .node:hover:not(.locked) {
+            transform: scale(1.15);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.5);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            z-index: 10;
+        }
+
+        /* 第一封信 - 脉冲星 */
+        .special {
+            border-color: rgba(100, 200, 255, 0.4);
+            color: #fff;
+            background: radial-gradient(circle at center, rgba(100, 200, 255, 0.2), transparent);
+            box-shadow: 0 0 15px rgba(100, 200, 255, 0.2);
+            animation: starPulse 3s infinite ease-in-out;
+        }
+
+        @keyframes starPulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(100, 200, 255, 0.2); opacity: 0.9; }
+            50% { box-shadow: 0 0 25px rgba(100, 200, 255, 0.6); opacity: 1; }
+        }
+
+        /* 锁定状态 - 黯淡的星辰 */
+        .locked {
+            opacity: 0.3; cursor: not-allowed;
+            filter: grayscale(100%);
+        }
+        
+    </style>
+</head>
+<body>
+
+<canvas id="galaxy-canvas"></canvas>
+<div class="noise-overlay"></div>
+<div class="vignette"></div>
+
+<div class="content-layer">
+    <header>
+        <h1>PROJECT 99</h1>
+        <p>Across the Universe</p>
+    </header>
+
+    <div class="grid-container">
+        <div class="mail-grid" id="grid"></div>
+    </div>
+</div>
+
+<script>
+    /**
+     * 粒子宇宙引擎 (Particle Universe Engine)
+     * 实现逻辑：
+     * 1. 构建一个3D球体坐标系的粒子群
+     * 2. 每一帧绕轴旋转 (Rotation Matrix)
+     * 3. 映射到2D平面 (Perspective Projection)
+     * 4. 增加呼吸闪烁和流星效果
+     */
+    
+    const canvas = document.getElementById('galaxy-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let width, height;
+    let particles = [];
+    let shootingStars = [];
+    
+    // 配置参数
+    const PARTICLE_COUNT = 1200; // 粒子数量
+    const ROTATION_SPEED = 0.001; // 宇宙自转速度
+    const MOUSE_SENSITIVITY = 0.0001; // 鼠标视差灵敏度
+    
+    // 鼠标位置状态
+    let mouseX = 0;
+    let mouseY = 0;
+    let targetRotationX = 0;
+    let targetRotationY = 0;
+
+    // 颜色库 (蓝、紫、青、金)
+    const colors = ['#a5b4fc', '#818cf8', '#c084fc', '#e879f9', '#22d3ee', '#ffd700'];
+
+    function init() {
+        resize();
+        createParticles();
+        window.addEventListener('resize', resize);
+        window.addEventListener('mousemove', onMouseMove);
+        requestAnimationFrame(animate);
+    }
+
+    function resize() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+    }
+
+    function onMouseMove(e) {
+        // 计算鼠标相对于中心的偏移
+        mouseX = e.clientX - width / 2;
+        mouseY = e.clientY - height / 2;
+    }
+
+    function createParticles() {
+        particles = [];
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            // 使用球体分布算法，但也混合一些随机分布，制造星云的不规则感
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos((Math.random() * 2) - 1);
+            // 距离中心的半径，偏向中心聚集
+            const radius = Math.cbrt(Math.random()) * (Math.min(width, height) * 0.8);
+
+            particles.push({
+                x: radius * Math.sin(phi) * Math.cos(theta),
+                y: radius * Math.sin(phi) * Math.sin(theta),
+                z: radius * Math.cos(phi),
+                originalZ: radius * Math.cos(phi), // 记录原始Z以便呼吸计算
+                size: Math.random() * 1.5,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                phase: Math.random() * Math.PI * 2 // 用于呼吸闪烁的相位
+            });
+        }
+    }
+
+    function drawParticles(rotX, rotY) {
+        // 排序：先画远的，后画近的 (Z-buffer algorithm simplified)
+        particles.sort((a, b) => b.rotatedZ - a.rotatedZ);
+
+        particles.forEach(p => {
+            // 1. 3D 旋转计算 (绕Y轴和X轴)
+            // 基础自转 + 鼠标视差
+            let y = p.y;
+            let z = p.z;
+            
+            // 绕X轴旋转
+            let tempY = y * Math.cos(rotX) - z * Math.sin(rotX);
+            let tempZ = z * Math.cos(rotX) + y * Math.sin(rotX);
+            y = tempY;
+            z = tempZ;
+
+            // 绕Y轴旋转
+            let x = p.x * Math.cos(rotY) - tempZ * Math.sin(rotY);
+            z = tempZ * Math.cos(rotY) + p.x * Math.sin(rotY);
+
+            // 保存旋转后的Z值用于排序
+            p.rotatedZ = z;
+
+            // 2. 透视投影 (Perspective Projection)
+            const fov = 400; // 视场深度
+            const scale = fov / (fov + z); 
+            
+            // 如果粒子在镜头后面，不绘制
+            if (scale < 0) return;
+
+            const px = x * scale + width / 2;
+            const py = y * scale + height / 2;
+
+            // 3. 绘制
+            // 呼吸效果：根据时间改变透明度
+            const twinkle = 0.5 + 0.5 * Math.sin(Date.now() * 0.003 + p.phase);
+            
+            ctx.beginPath();
+            ctx.arc(px, py, p.size * scale, 0, Math.PI * 2);
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = Math.min(1, (scale * 0.8) * twinkle); // 越远越淡，且闪烁
+            ctx.fill();
+            
+            // 增加光晕效果 (仅对大星星)
+            if (p.size > 1 && scale > 0.8) {
+                ctx.globalAlpha = 0.1 * twinkle;
+                ctx.beginPath();
+                ctx.arc(px, py, p.size * scale * 4, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+            }
+        });
+    }
+
+    // --- 流星逻辑 ---
+    function handleShootingStars() {
+        // 随机生成流星
+        if (Math.random() < 0.03) {
+            shootingStars.push({
+                x: Math.random() * width,
+                y: Math.random() * height * 0.5,
+                len: Math.random() * 80 + 20,
+                speed: Math.random() * 10 + 10,
+                angle: Math.PI / 4 + (Math.random() * 0.2), // 约45度下落
+                life: 1
+            });
+        }
+
+        for (let i = shootingStars.length - 1; i >= 0; i--) {
+            let s = shootingStars[i];
+            
+            // 更新位置
+            s.x -= s.speed * Math.cos(s.angle);
+            s.y += s.speed * Math.sin(s.angle);
+            s.life -= 0.02;
+
+            if (s.life <= 0) {
+                shootingStars.splice(i, 1);
+                continue;
+            }
+
+            // 绘制流星尾巴 (渐变线)
+            const tailX = s.x + s.len * Math.cos(s.angle);
+            const tailY = s.y - s.len * Math.sin(s.angle);
+            
+            const gradient = ctx.createLinearGradient(s.x, s.y, tailX, tailY);
+            gradient.addColorStop(0, "rgba(255,255,255," + s.life + ")");
+            gradient.addColorStop(1, "rgba(255,255,255,0)");
+
+            ctx.beginPath();
+            ctx.moveTo(s.x, s.y);
+            ctx.lineTo(tailX, tailY);
+            ctx.strokeStyle = gradient;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+    }
+
+    let angleY = 0;
+    let angleX = 0;
+
+    function animate() {
+        ctx.clearRect(0, 0, width, height); // 清空画布，保持透明背景以显示CSS渐变底色
+        
+        // 平滑过渡鼠标旋转角度
+        targetRotationY = mouseX * MOUSE_SENSITIVITY;
+        targetRotationX = mouseY * MOUSE_SENSITIVITY;
+        
+        angleY += (targetRotationY - angleY) * 0.05 + ROTATION_SPEED; // 自动旋转 + 鼠标影响
+        angleX += (targetRotationX - angleX) * 0.05;
+
+        drawParticles(angleX, angleY);
+        handleShootingStars();
+
+        requestAnimationFrame(animate);
+    }
+
+    init();
+
+    // --- 生成信件节点逻辑 ---
+    const grid = document.getElementById('grid');
+    for (let i = 1; i <= 99; i++) {
+        const div = document.createElement('div'); // 改用div或a
+        const link = document.createElement('a');
+        
+        link.className = i === 1 ? 'node special' : 'node locked';
+        link.innerHTML = String(i).padStart(2, '0');
+        link.href = "#";
+        
+        // 简单的点击交互
+        link.onclick = (e) => {
+            e.preventDefault();
+            if(i === 1) {
+                alert("✦ 星际链路已建立 ✦\n正在接收来自 2099 年的信号...");
+            } else {
+                // 震动效果
+                link.style.transform = "translateX(5px)";
+                setTimeout(() => link.style.transform = "none", 100);
+            }
+        };
+
+        grid.appendChild(link);
+    }
+</script>
+
+</body>
+</html>

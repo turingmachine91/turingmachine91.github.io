@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>来自未来的 99 封信 | Project 99</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Montserrat:wght@300;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gold: #d4af37;
+            --accent-red: #ea4956;
+            /* --accent-cyan: #00f2fe; */
+            --accent-cyan: #d4af37;
+            --deep-space-bg: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow-x: hidden;
+            background: var(--deep-space-bg); /* 更深邃的背景 */
+            font-family: 'Montserrat', 'PingFang SC', sans-serif;
+            color: #fff;
+        }
+
+        /* 星空画布 */
+        #starfield {
+            position: fixed; top: 0; left: 0; z-index: 0;
+            width: 100vw; height: 100vh;
+            mix-blend-mode: screen; /* 让星星更亮 */
+        }
+
+        /* 氛围遮罩：增加神秘感和暗角 */
+        .vignette-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+            background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.8) 90%);
+            pointer-events: none;
+        }
+
+        /* 内容层 */
+        .content-layer {
+            position: relative; z-index: 10;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh;
+            /* 初始隐藏，等待星空减速后出现 */
+            opacity: 0;
+            transform: scale(0.95) translateY(30px);
+            transition: opacity 2s ease-out, transform 2s ease-out;
+        }
+
+        /* 用于JS控制内容出现的类 */
+        .content-visible {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+
+        header {
+            text-align: center; padding: 80px 20px 40px;
+            color: var(--primary-gold);
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+
+        header h1 {
+            font-family: 'Cinzel Decorative', cursive; /* 使用装饰性衬线字体 */
+            font-weight: 700; font-size: 2.2rem; margin-bottom: 15px;
+            letter-spacing: 8px;
+            background: linear-gradient(to bottom, #fff, var(--primary-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.9rem; opacity: 0.8; letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        /* 核心网格区域 */
+        .mail-grid-container {
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 50px;
+        }
+
+        .mail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 12px; width: 85vw; max-width: 700px;
+        }
+
+        /* 信封 - 高级水晶质感 */
+        .envelope {
+            aspect-ratio: 1;
+            display: flex; align-items: center; justify-content: center;
+            text-decoration: none; color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8rem; font-weight: 500; font-family: 'Montserrat', sans-serif;
+            
+            /* 玻璃拟态核心样式 */
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            border-radius: 8px;
+            box-shadow: 
+                0 4px 6px rgba(0, 0, 0, 0.1),
+                inset 0 1px 1px rgba(255, 255, 255, 0.1),
+                inset 0 -2px 5px rgba(0, 0, 0, 0.2);
+            
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 悬停效果：浮起并变亮 */
+        .envelope:hover:not(.locked) {
+            transform: translateY(-5px) scale(1.05);
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 
+                0 15px 25px rgba(0,0,0,0.3),
+                0 0 15px rgba(212, 175, 55, 0.2),
+                inset 0 1px 1px rgba(255, 255, 255, 0.2);
+        }
+        
+        .envelope:active { transform: scale(0.98); }
+
+        /* 特殊信件 (No.01) - 核心能量块 */
+        .special {
+            /* 使用青色和金色的混合渐变，更具科幻感 */
+            border: 1px solid rgba(0, 242, 254, 0.5);
+            color: var(--accent-cyan);
+            font-weight: 700;
+            background: linear-gradient(135deg, rgba(0, 242, 254, 0.1), rgba(212, 175, 55, 0.05));
+            box-shadow: 
+                0 0 20px rgba(0, 242, 254, 0.3),
+                inset 0 0 15px rgba(0, 242, 254, 0.1);
+            animation: dataPulse 3s infinite ease-in-out;
+        }
+
+        /* 特殊信件的内部光效扫描 */
+        .special::before {
+            content: ''; position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: linear-gradient(
+                to bottom right, transparent, transparent, 
+                rgba(255, 255, 255, 0.4), 
+                transparent, transparent
+            );
+            transform: rotate(45deg);
+            animation: scan 4s infinite linear;
+            opacity: 0.3;
+        }
+
+        @keyframes dataPulse {
+            0%, 100% { box-shadow: 0 0 15px rgba(0, 242, 254, 0.3), inset 0 0 10px rgba(0, 242, 254, 0.1); color: var(--accent-cyan); }
+            50% { box-shadow: 0 0 30px rgba(0, 242, 254, 0.6), inset 0 0 20px rgba(0, 242, 254, 0.3); color: #fff; }
+        }
+
+        @keyframes scan {
+            0% { transform: translateY(-100%) rotate(45deg); }
+            100% { transform: translateY(100%) rotate(45deg); }
+        }
+
+        /* 锁定状态 */
+        .locked {
+            opacity: 0.5; cursor: not-allowed;
+            background: rgba(0, 0, 0, 0.2);
+            border-color: rgba(255,255,255,0.05);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        .locked:hover { transform: none; box-shadow: none; }
+
+    </style>
+</head>
+<body>
+
+<canvas id="starfield"></canvas>
+<div class="vignette-overlay"></div>
+
+<div class="content-layer" id="contentLayer">
+    <header>
+        <h1>PROJECT 99</h1>
+        <p>— A Signal From 2099 —</p>
+    </header>
+
+    <div class="mail-grid-container">
+        <div class="mail-grid" id="grid">
+            </div>
+    </div>
+</div>
+
+<script>
+    // --- 升级版星空时空穿梭逻辑 ---
+    const canvas = document.getElementById('starfield');
+    const ctx = canvas.getContext('2d');
+
+    let w, h, stars = [];
+    const count = 2000; // 增加星星数量
+    let speed = 30; // 初始极快速度 (Warp Speed)
+    let rotation = 30;
+    const targetSpeed = 10; // 目标慢速 (Arrival)
+
+    function init() {
+        w = window.innerWidth;
+        h = window.innerHeight;
+        canvas.width = w;
+        canvas.height = h;
+        stars = [];
+        for (let i = 0; i < count; i++) {
+            stars.push({
+                x: Math.random() * w - w / 2,
+                y: Math.random() * h - h / 2,
+                z: Math.random() * w,
+                // 增加随机颜色，偏向冷色调和金色
+                color: Math.random() > 0.8 ? '#d4af37' : (Math.random() > 0.5 ? '#a0c4ff' : '#ffffff'),
+                sizeBase: Math.random() * 1.5 + 0.5
+            });
+        }
+    }
+
+    function draw() {
+        // 使用带透明度的黑色填充，创造拖尾效果
+        ctx.fillStyle = "rgba(9, 10, 15, 0.3)"; 
+        ctx.fillRect(0, 0, w, h);
+        
+        ctx.save();
+        ctx.translate(w / 2, h / 2);
+        // 轻微旋转画布，增加动感
+        ctx.rotate(rotation); rotation += 0.0005;
+        
+        // 模拟减速过程
+        speed += (targetSpeed - speed) * 0.01;
+
+        for (let i = 0; i < count; i++) {
+            let s = stars[i];
+            s.z -= speed;
+
+            if (s.z <= 0) {
+                s.z = w;
+                s.x = Math.random() * w - w / 2;
+                s.y = Math.random() * h - h / 2;
+            }
+
+            let perspective = w / s.z;
+            let x = s.x * perspective;
+            let y = s.y * perspective;
+            let size = s.sizeBase * perspective * (speed > 5 ? 0.5 : 1); // 速度快时星星变细
+
+            // 计算拖尾的起点 (更夸张的透视拉伸)
+            let tailPerspective = w / (s.z + speed * 10); 
+            let tailX = s.x * tailPerspective;
+            let tailY = s.y * tailPerspective;
+            
+            // 绘制光速拉伸线条
+            ctx.beginPath();
+            ctx.lineWidth = size;
+            ctx.strokeStyle = s.color;
+            ctx.globalAlpha = (1 - s.z / w); // 远处透明
+            ctx.moveTo(tailX, tailY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+
+            // 速度慢下来后，绘制中心亮点
+            if (speed < 20) {
+                 ctx.beginPath();
+                 ctx.arc(x, y, size / 2, 0, Math.PI * 2);
+                 ctx.fillStyle = s.color;
+                 ctx.fill();
+            }
+        }
+        ctx.restore();
+        requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', init);
+    init();
+    draw();
+
+    // --- 页面加载控制 ---
+    // 当星空速度降下来时，显示内容
+    setTimeout(() => {
+        document.getElementById('contentLayer').classList.add('content-visible');
+    }, 10000);
+
+
+    // --- 信件生成逻辑 (保持不变，只修改了弹窗文字) ---
+    const grid = document.getElementById('grid');
+    for (let i = 1; i <= 99; i++) {
+        const a = document.createElement('a');
+        a.innerHTML = String(i).padStart(2, '0');
+        if (i === 1) {
+            a.className = 'envelope special';
+            a.href = "#"; // 暂时链接到当前页
+            a.onclick = (e) => { e.preventDefault(); alert("正在解密第一条来自 2099 年的信息..."); }
+        } else {
+            a.className = 'envelope locked';
+            // 计算一个未来的随机年份，增加真实感
+            const futureYear = 2030 + Math.floor(i * 0.7) + Math.floor(Math.random() * 5);
+            a.onclick = (e) => {
+                e.preventDefault();
+                alert(`访问拒绝。\n该时间胶囊已被量子锁定，预计将于 ${futureYear} 年解封。`);
+            };
+        }
+        grid.appendChild(a);
+    }
+</script>
+
+</body>
+</html>
