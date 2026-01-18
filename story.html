@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>第一封信：溯源</title>
+    <style>
+        body { background: #000; color: #fff; margin: 0; font-family: "PingFang SC"; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        #story-box { width: 85%; max-width: 400px; position: relative; }
+        .text-display { line-height: 2; font-size: 1.1rem; min-height: 200px; margin-bottom: 30px; white-space: pre-wrap; }
+        .btn-zone { display: flex; flex-direction: column; gap: 15px; }
+        button { background: none; border: 1px solid #ff4757; color: #ff4757; padding: 15px; border-radius: 30px; font-size: 1rem; cursor: pointer; transition: 0.3s; }
+        button:hover { background: rgba(255,71,87,0.1); }
+        .shake { animation: shake 0.5s infinite; }
+        @keyframes shake { 0% { transform:translateX(0); } 25% { transform:translateX(5px); } 50% { transform:translateX(-5px); } 100% { transform:translateX(0); } }
+    </style>
+</head>
+<body>
+    <div id="story-box">
+        <div id="text" class="text-display"></div>
+        <div id="btns" class="btn-zone"></div>
+    </div>
+
+    <script>
+        const story = {
+            start: {
+                content: "【载入第一封信：溯源】\n\n你好，小猪。当你看到这里时，24岁的旅程已经开启了。\n\n接下来的20分钟，如果你准备好了，请按下开启键。",
+                btns: [{ t: "开启回忆录", n: "m_1" }]
+            },
+            m_1: {
+                content: "我们第一次见面时，你穿的那件衣服我至今都记得。其实那天我特别紧张，甚至在想你会不会觉得我很土。",
+                btns: [
+                    { t: "哈哈，确实有点土", n: "p_1" },
+                    { t: "没有啊，很帅！", n: "m_2" }
+                ]
+            },
+            p_1: { // 恶作剧循环
+                content: "【系统错误：检测到审美异常】\n为了纠正你的审美，请点击屏幕 20 次进行校准。",
+                type: "loop",
+                target: 20,
+                n: "m_1"
+            },
+            m_2: {
+                content: "算你有眼光！（嘿嘿）\n\n记得那次在雨里，我们没打伞跑过那条街吗？当时我觉得，如果时间能停在那一秒就好了...",
+                btns: [{ t: "那一秒我在想什么？", n: "m_3" }]
+            },
+            // 这里可以无限添加剧情节点...
+            m_3: {
+                content: "你在想：这个笨蛋怎么不带伞！\n对不对？\n\n（以此类推，可以写满 20 分钟的阅读量）",
+                btns: [{ t: "继续回忆", n: "end" }]
+            },
+            end: {
+                content: "20分钟的时光机快要到达终点站了。\n\n但这只是 99 封信里的第一封。\n剩下的 98 封，我会用一辈子写给你。\n\n生日快乐！",
+                btns: [{ t: "回到信箱首页", n: "back" }]
+            }
+        };
+
+        function play(key) {
+            const data = story[key];
+            if(key === "back") { window.location.href = "index.html"; return; }
+            
+            const txtDiv = document.getElementById('text');
+            const btnDiv = document.getElementById('btns');
+            txtDiv.innerHTML = ""; btnDiv.innerHTML = "";
+            
+            // 打字机效果
+            let i = 0;
+            const timer = setInterval(() => {
+                if(i < data.content.length) {
+                    txtDiv.innerHTML += data.content[i++];
+                } else {
+                    clearInterval(timer);
+                    showBtns(data);
+                }
+            }, 80);
+        }
+
+        function showBtns(data) {
+            const btnDiv = document.getElementById('btns');
+            if(data.type === "loop") {
+                let count = 0;
+                const b = document.createElement('button');
+                b.className = "shake";
+                b.innerText = `审美校准中 (${count}/${data.target})`;
+                b.onclick = () => {
+                    count++;
+                    b.innerText = `审美校准中 (${count}/${data.target})`;
+                    if(count >= data.target) play(data.n);
+                };
+                btnDiv.appendChild(b);
+            } else {
+                data.btns.forEach(opt => {
+                    const b = document.createElement('button');
+                    b.innerText = opt.t;
+                    b.onclick = () => play(opt.n);
+                    btnDiv.appendChild(b);
+                });
+            }
+        }
+
+        play('start');
+    </script>
+</body>
+</html>

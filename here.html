@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>时间的礼物</title>
+    <style>
+        :root { --main-red: #ff4757; --soft-pink: #f7d7da; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #1a1a1a; color: white; font-family: "PingFang SC"; }
+        
+        #game-stage { width: 100%; height: 100%; display: flex; flex-direction: column; transition: all 1s; }
+        
+        /* 章节显示区 */
+        .scene { padding: 30px; display: none; height: 100%; box-sizing: border-box; flex-direction: column; justify-content: center; background: radial-gradient(circle, #2f3542 0%, #1a1a1a 100%); }
+        .active { display: flex; animation: fadeIn 2s; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .typewriter { font-size: 1.1rem; line-height: 2; color: #ecf0f1; text-shadow: 0 0 5px rgba(255,255,255,0.2); }
+        
+        .choices { margin-top: 40px; display: flex; flex-direction: column; gap: 15px; }
+        button { background: transparent; border: 1px solid var(--main-red); color: var(--main-red); padding: 15px; border-radius: 8px; font-size: 0.95rem; transition: 0.3s; }
+        button:active { background: var(--main-red); color: white; }
+
+        /* 恶作剧动画 */
+        .glitch { animation: shake 0.5s infinite; color: #ff4757 !important; }
+        @keyframes shake { 0% { transform: translate(0); } 20% { transform: translate(-5px, 5px); } 40% { transform: translate(-5px, -5px); } 60% { transform: translate(5px, 5px); } 80% { transform: translate(5px, -5px); } 100% { transform: translate(0); } }
+
+        /* 隐藏碎片关卡专用 */
+        .fragment-gate { position: relative; width: 100%; height: 200px; border: 1px dashed #555; margin-top: 20px; }
+        .heart-fragment { position: absolute; cursor: pointer; font-size: 20px; }
+    </style>
+</head>
+<body>
+
+<div id="game-stage">
+    </div>
+
+<script>
+    // 剧情数据库 - 这里你可以无限扩充文字来增加时长
+    const storyData = [
+        {
+            id: "intro",
+            text: "现在是深夜，你打开了这个链接。\n接下来的20分钟，请找一个安静的地方，\n不要退出，因为有些话，我藏了很久...",
+            choices: [{ text: "我准备好了", next: "chapter1" }]
+        },
+        {
+            id: "chapter1",
+            text: "【第一章：相遇的蝴蝶效应】\n你相信吗？如果那天我们没有在那个路口相遇，\n或者那天我迟到了1分钟，\n我们现在可能只是陌路人。\n你在那一刻，对我的第一印象是什么？",
+            choices: [
+                { text: "这男的看起来不太聪明", next: "prank_loop_start" },
+                { text: "一种宿命的感觉", next: "collect_game" }
+            ]
+        },
+        {
+            id: "prank_loop_start",
+            text: "（系统警告：检测到不实评价）\n既然你觉得我不聪明，那我们需要进行智商测试。\n请问：我和你妈掉水里，你先救谁？",
+            choices: [
+                { text: "先救我妈", next: "prank_loop_1" },
+                { text: "先救你（违心的）", next: "prank_loop_1" }
+            ]
+        },
+        {
+            id: "prank_loop_1",
+            text: "回答错误！其实正确答案是：我会游泳，我会救你们两个。\n作为惩罚，你需要点10下这个按钮才能退出循环。",
+            type: "click_challenge",
+            count: 10,
+            next: "chapter1"
+        },
+        {
+            id: "collect_game",
+            text: "【第二章：回忆的碎片】\n我们的爱散落在日常里，请找出房间里隐藏的3个爱心碎片，\n它们代表着我们在一起的第一年、第二年...",
+            type: "collect",
+            target: 3,
+            next: "deep_memory"
+        },
+        {
+            id: "deep_memory",
+            text: "【第三章：那些争吵与拥抱】\n并不是所有时刻都是甜的。\n记得那次吵架吗？你转过身去不理我，\n其实我当时在想，如果你回头，我一定立刻认输。\n那个时候，你在想什么？",
+            choices: [
+                { text: "想把你踢到太平洋", next: " Pacific_ending" },
+                { text: "其实我也在等你抱我", next: "future_step" }
+            ]
+        },
+        // ... 此处可以根据你的真实经历扩充10-20个类似的节点
+        {
+            id: "future_step",
+            text: "【终章：未来的邀请函】\n20分钟很快就过去了，但我们的路还很长。\n谢谢你出现在我的生命里。\n生日快乐，我的女孩。",
+            choices: [{ text: "我也爱你，回到最初", next: "intro" }]
+        }
+    ];
+
+    let stage = document.getElementById('game-stage');
+
+    function renderScene(id) {
+        const data = storyData.find(s => s.id === id);
+        stage.innerHTML = '';
+        
+        let sceneDiv = document.createElement('div');
+        sceneDiv.className = 'scene active';
+        
+        let p = document.createElement('div');
+        p.className = 'typewriter';
+        sceneDiv.appendChild(p);
+
+        // 复杂的打字机逻辑：模拟思考的停顿
+        let i = 0;
+        function typing() {
+            if (i < data.text.length) {
+                p.innerHTML += data.text.charAt(i);
+                let speed = data.text.charAt(i) === '，' ? 400 : 80; // 标点符号停顿久一点
+                i++;
+                setTimeout(typing, speed);
+            } else {
+                showChoices(data, sceneDiv);
+            }
+        }
+        typing();
+        stage.appendChild(sceneDiv);
+    }
+
+    function showChoices(data, container) {
+        let choiceDiv = document.createElement('div');
+        choiceDiv.className = 'choices';
+
+        if (data.type === "click_challenge") {
+            let count = 0;
+            let btn = document.createElement('button');
+            btn.innerText = `点我解除惩罚 (${count}/${data.count})`;
+            btn.onclick = () => {
+                count++;
+                btn.innerText = `点我解除惩罚 (${count}/${data.count})`;
+                if (count >= data.count) renderScene(data.next);
+            };
+            choiceDiv.appendChild(btn);
+        } else if (data.type === "collect") {
+            let found = 0;
+            let gate = document.createElement('div');
+            gate.className = 'fragment-gate';
+            for(let i=0; i<data.target; i++) {
+                let f = document.createElement('span');
+                f.className = 'heart-fragment';
+                f.innerHTML = '❤';
+                f.style.left = Math.random()*80 + '%';
+                f.style.top = Math.random()*80 + '%';
+                f.onclick = () => {
+                    f.style.display = 'none';
+                    found++;
+                    if (found >= data.target) renderScene(data.next);
+                };
+                gate.appendChild(f);
+            }
+            container.appendChild(gate);
+        } else {
+            data.choices.forEach(c => {
+                let btn = document.createElement('button');
+                btn.innerText = c.text;
+                btn.onclick = () => renderScene(c.next);
+                choiceDiv.appendChild(btn);
+            });
+        }
+        container.appendChild(choiceDiv);
+    }
+
+    renderScene('intro');
+</script>
+</body>
+</html>

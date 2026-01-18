@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The 99 Project</title>
+    <style>
+        body { margin: 0; background: #050505; color: #d4af37; font-family: "PingFang SC", serif; overflow-x: hidden; }
+        #canvas-bg { position: fixed; top: 0; z-index: -1; }
+        .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; text-align: center; }
+        h1 { font-weight: 200; letter-spacing: 8px; margin-bottom: 50px; animation: glow 3s infinite alternate; }
+        @keyframes glow { from { text-shadow: 0 0 5px #fff; } to { text-shadow: 0 0 20px #d4af37; } }
+        
+        .mail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 15px; }
+        .envelope {
+            aspect-ratio: 1; background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 4px; display: flex; align-items: center; justify-content: center;
+            text-decoration: none; color: inherit; transition: 0.4s; font-size: 0.8rem;
+        }
+        .envelope:hover { background: rgba(212,175,55,0.15); transform: translateY(-5px); border-color: #d4af37; }
+        .special { border-color: #d4af37; box-shadow: 0 0 10px rgba(212,175,55,0.4); font-weight: bold; }
+        .locked { cursor: not-allowed; opacity: 0.4; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas-bg"></canvas>
+    <div class="container">
+        <h1>PROJECT 99</h1>
+        <div class="mail-grid" id="grid"></div>
+    </div>
+
+    <script>
+        // 生成星空
+        const cvs = document.getElementById('canvas-bg');
+        const ctx = cvs.getContext('2d');
+        cvs.width = window.innerWidth; cvs.height = window.innerHeight;
+        for(let i=0; i<200; i++) {
+            ctx.fillStyle = `rgba(255,255,255,${Math.random()})`;
+            ctx.fillRect(Math.random()*cvs.width, Math.random()*cvs.height, 1, 1);
+        }
+
+        const grid = document.getElementById('grid');
+        for(let i=1; i<=99; i++) {
+            const a = document.createElement('a');
+            a.className = i === 1 ? 'envelope special' : 'envelope locked';
+            a.innerHTML = String(i).padStart(2, '0');
+            // 只有第一封信跳转
+            if(i === 1) {
+                a.href = "story.html"; // 跳转到第二个网页
+            } else {
+                a.onclick = (e) => { e.preventDefault(); alert("这封信还在未来的时空中，尚未寄达..."); };
+            }
+            grid.appendChild(a);
+        }
+    </script>
+</body>
+</html>
